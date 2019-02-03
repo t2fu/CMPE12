@@ -15,10 +15,11 @@ What was your design approach?
 There are four bit registers and when adding the circuit will check the value in
 the last counted bit register and count toward to the next bit register if the
 last counted bit register already have a 1 in it. The subtraction is finished with
-the logic of 2's complement, the circuit will add 1 to the largest bit register
+the logic of 2's complement, the circuit will add 1 to the lowest bit register
+after the bit been inversed and then the bits will be add to the original bit registers
 to achieves each indivdual subtraction through 2's complement. The Sign and Magnitude
 displays logics are finished with similar logics used in the Register Value display and are
-contacted with the results of the registers.
+contacted with the results of registers. There are more detailed comments in the Lab2.lgi.
 
 Did you encounter any issues? Were there parts of this lab you found
 enjoyable?
