@@ -12,29 +12,29 @@
 #
 # Notes: This program is intended to be run from the MARS IDE. The user input values have to be integers.
 ##########################################################################
-.data
+.data	# Initialize the string outputs that will be use in the program
 	message1: .asciiz "Enter the length of one of the triangle legs: "
-	message2: .asciiz "\nEnter the number of triangles to print: "
+	message2: .asciiz "Enter the number of triangles to print: "
 	newLine: .asciiz "\n"
-	Run: .assciiz "Run"
+
 .text
-	li $v0, 4     # Output the first message
+	li $v0, 4        # Output the first message
 	la $a0, message1
 	syscall
 	
-	li $v0, 5     # Read the user's respond for the first message
+	li $v0, 5        # Read the user's respond for the first message
 	syscall
-	move $t0, $v0 # Save the first user input, length of one of the triangle leg, into $t0
+	move $t0, $v0    # Save the first user input, length of one of the triangle leg, into $t0
 
-	li $v0, 4     # Output the second message
+	li $v0, 4        # Output the second message
 	la $a0, message2
 	syscall
 	
-	li $v0, 5     # Read the user respond for the second message
+	li $v0, 5        # Read the user respond for the second message
 	syscall
-	move $t1, $v0 # Save the second user input, the number of triangles to print, into $t1
+	move $t1, $v0    # Save the second user input, the number of triangles to print, into $t1
 	
-	main:         # There are 5 for loops, Loopi, Loopj, Loopk, Loopl, Loopz, in this program to print out the triangles
+	main:            # There are 5 for loops, Loopi, Loopj, Loopk, Loopl, Loopz, in this program to print out the triangles
 	
 		addi $t2, $zero, 0          # Initialize $t2 to 0 as the loop counting variable for Loopi
 		
