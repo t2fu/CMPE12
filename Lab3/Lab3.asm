@@ -1,14 +1,16 @@
 ##########################################################################
 # Created by: Fu, Tiancheng
 # CruzID: tfu6
-# 10th February 2019
+# 15th February 2019
 # Assignment: Lab 3: MIPS Looping ASCII Art
 # CMPE 012, Computer Systems and Assembly Language
 # UC Santa Cruz, Winter 2019
 #
-# Description: This program prints ‘Hello world.’ to the screen.
+# Description: This program allows the user to input the number of triangles and the length of one of the triangle's legs.
+# Then the program will print out the triangles with the corresponding number of legs and endthe program when the last triangle
+# has finished printing.
 #
-# Notes: This program is intended to be run from the MARS IDE.
+# Notes: This program is intended to be run from the MARS IDE. The user input values have to be integers.
 ##########################################################################
 .data
 	message1: .asciiz "Enter the length of one of the triangle legs: "
@@ -16,97 +18,95 @@
 	newLine: .asciiz "\n"
 	Run: .assciiz "Run"
 .text
-	li $v0, 4
+	li $v0, 4     # Output the first message
 	la $a0, message1
 	syscall
 	
-	li $v0, 5
+	li $v0, 5     # Read the user's respond for the first message
 	syscall
-	
-	move $t0, $v0
+	move $t0, $v0 # Save the first user input, length of one of the triangle leg, into $t0
 
-	li $v0, 4
+	li $v0, 4     # Output the second message
 	la $a0, message2
 	syscall
 	
-	li $v0, 5
+	li $v0, 5     # Read the user respond for the second message
 	syscall
-	move $t1, $v0
+	move $t1, $v0 # Save the second user input, the number of triangles to print, into $t1
 	
-	main:
-		addi $t2, $zero, 0 #i
-		Loopi:	
+	main:         # There are 5 for loops, Loopi, Loopj, Loopk, Loopl, Loopz, in this program to print out the triangles
+	
+		addi $t2, $zero, 0          # Initialize $t2 to 0 as the loop counting variable for Loopi
+		
+		Loopi:                      # Loopi is use to print out all of the triangles according to user input in $t1
 			
-			beq $t2, $t1, exiti
-			addi $t2, $t2, 1
-			addi $t3, $zero, 0 #j
-			addi $t5, $t0, 0 #l
+			beq $t2, $t1, exiti # Exit Loopi when all triangles according to $t1 have printed out
+			addi $t2, $t2, 1    # Add 1 to $t2 everytime when Loopi has been run
+			addi $t3, $zero, 0  # Initialize $t3 to 0 as the loop counting variable for Loopj
+			addi $t5, $t0, 0    # Initialize $t5 to the value of $t0 as the loop counting variable for Loopl
 			
 			
-		Loopj:	
-			beq $t3, $t0, exitj
-			addi $t3, $t3, 1
-			addi $t4, $zero, 0 #k
+		Loopj:                      # Loopj is use to print out the first side of one triangle acording to user input in $t0
+			beq $t3, $t0, exitj # Exit Loopj when all legs for the first side according to $t0 have printed out
+			addi $t3, $t3, 1    # Add 1 to $t3 everytime when Loopj has been run
+			addi $t4, $zero, 0  # Initialize $t4 to 0 as the loop counting variable for Loopk
 			
-			li $v0, 4
-			la $a0, newLine #print new line
+			li $v0, 4	     # Print a new line
+			la $a0, newLine
 			syscall
 			
-			Loopk:	
-				addi $t6, $zero, 0
+			Loopk:		            # Loopk is use to print out the spaces before printing one triangle leg for the first side of the triangle
+				addi $t6, $zero, 0  # Initialize $t6 to $t3-1 as the Loopk's reference value
 				move $t6, $t3
 				sub $t6, $t6, 1
-				beq $t4, $t6, exitk
-				addi $t4, $t4, 1
 				
-				li $v0, 11
-				la $a0, 0x20 #print new space
-				syscall				
+				beq $t4, $t6, exitk # Exit Loopk when all spaces before a triangle's leg have been printed
+				addi $t4, $t4, 1    # Add 1 to $t4 everytime when Loopk has been run
+				
+				li $v0, 11          # Print new space
+				la $a0, 0x20
+				syscall
 			
 				j Loopk				
-			exitk:
-				li $v0, 11
-				la $a0, 0x5c #print new fsls
-				syscall	
-				j Loopj
+			exitk:			     # The exit function for Loopk
+				li $v0, 11          # Print new forward slash
+				la $a0, 0x5c
+				syscall
+				
+				j Loopj		     # Jump back to Loopj
 			
 			
-		exitj:	
-			#bne $s1, $t0, addii
-			j Loopl
+		exitj:	            # The exit function for Loopj
+			j Loopl     # Jump to Loopl to print the second side of a triangle
 			
-		 	#bne $s1, $t0, Loopj
-		 	#addi $s2, $s2, 1
-		 	#bne $s2, $t0, Loopl
-		exiti:
-			li $v0, 10
+		exiti:		    # The exit function for Loopi
+			li $v0, 10  # End the program when all trangles have printed according to $t1
 			syscall
 		
-		Loopl:
-			beq $t5, $zero, exitl
-			sub $t5, $t5, 1
-			addi $t4, $t5, 0 #z
-			#sub $t4, $t4, 1
-				
-			li $v0, 4
-			la $a0, newLine #print new line
+		Loopl:        		       # Loopl is use to print out the second side of one triangle acording to user input in $t0
+			beq $t5, $zero, exitl # Exit Loopl when all legs for the second side according to $t0 have printed out
+			sub $t5, $t5, 1       # Subtract 1 to $t5 everytime when Loopl has been run
+			addi $t4, $t5, 0      # Initialize $t4 to the value of $t5 as the loop counting variable for Loopz
+
+			li $v0, 4	       # Print new line
+			la $a0, newLine
 			syscall
 
-			Loopz:	
-				beq $zero, $t4, exitz
-				sub $t4, $t4, 1
+			Loopz:		       	       # Loopz is use to print out the spaces before printing one triangle leg for the second side of the triangle
+				beq $zero, $t4, exitz # Exit Loopz when all spaces before a triangle's leg have been printed
+				sub $t4, $t4, 1       # Subtract 1 to $t4 everytime when Loopl has been run
 				
-				li $v0, 11
-				la $a0, 0x20 #print new space
+				li $v0, 11	       # Print new space
+				la $a0, 0x20
 				syscall				
 			
-				j Loopz
-			exitz:
-				li $v0, 11
-				li $a0, 0x2f #print new bsls
-				syscall	
-				j Loopl			
+				j Loopz		       # Jump back to Loopz
+				
+			exitz:			       # The exit function for Loopz
+				li $v0, 11            # Print new backward slash
+				li $a0, 0x2f
+				syscall
+				j Loopl # Jump back to Loopl
 		
 		exitl:
-			j Loopi
-		
+			j Loopi # Jump back to Loopi to print the next triangle
