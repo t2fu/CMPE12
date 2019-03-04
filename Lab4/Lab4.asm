@@ -1,18 +1,21 @@
 ##########################################################################
 # Created by: Fu, Tiancheng
 # CruzID: tfu6
-# 19 February 2019
+# 3rd March 2019
 #
 # Assignment: Lab 4: ASCII Conversion
 # CMPE 012, Computer Systems and Assembly Language
 # UC Santa Cruz, Winter 2019
 #
-# Description: This program read two 8-bit 2'S Complement number and will add them to a sum and output it.
+# Description: This program read two 8-bit 2'S Complement number and will add them to a sum and output it. The program will convert the two input arguments
+# into 32-bit sign extend 2's Complement number and store them in register $s1 and $s2. Then the program will add the value stores in the register $s1
+# and $s2 into $s0 and output the sum in base 4 with a magnitude and a negative sign if the sum is negative.
 #
 # Notes: This program is intended to be run from the MARS IDE. These numbers may be entered as hex
 # (using the “0x” prefix) or binary (using the “0b” prefix). The range of these
 # inputs are: [0x80, 0x7F] in hex or [0b10000000, 0b01111111] in binary. Note
-# that this range is [-128, 127] in decimal.
+# that this range is [-128, 127] in decimal. Input arguments out of the range may
+# result in runtime errors.
 ##########################################################################
 
 # Pseudocode:
@@ -23,26 +26,37 @@
 # main function .text
 # ask for user input
 #
-# if input start with "0x" -> BitConverter1
+# if input start with "0x" -> BitConverter1 or BinaryA
 # 	output the user's input
 #		convert the first input to 32-bit 2SC binary number and store it in $s1
 #		convert the second input to 32-bit 2SC binary number and store it in $s2
 #			
-# if input start with "0b" -> BitConverter2
+# if input start with "0b" -> BitConverter2 or BinaryB
 # 	output the user's input
 #		convert the first input to 32-bit 2SC binary number and store it in $s1
 #		convert the second input to 32-bit 2SC binary number and store it in $s2
 #
-# function BitConverter1:
+# function BitConverterA:
 #	This function convert a 2 digits 2SC hex string into a 2SC binary value
-#	Sign-extend the binary number to 32-bit
+#	Sign-extend the binary number to 32-bit and save the value in register $s1
 #	to BinaryAdder
 #
-# function BitConverter2:
-#	This function sign-extend the user input to a 32-bit 2SC value
+# function BitConverterB:
+#	This function convert a 2 digits 2SC hex string into a 2SC binary value
+#	Sign-extend the binary number to 32-bit and save the value in register $s2
 #	to BinaryAdder
 #
-# function BinaryAdder:
+# function BinaryA:
+#	This function convert a 8 digits binary string into a 2SC binary value
+#	Sign-extend the binary number to 32-bit and save the value in register $s1
+#	to BinaryAdder
+#
+# function BinaryB:
+#	This function convert a 8 digits binary string into a 2SC binary value
+#	Sign-extend the binary number to 32-bit and save the value in register $s2
+#	to BinaryAdder
+#
+# function BitAdder:
 #	This function add value in register $s1 and $s2
 #		store the sum to $s0
 #			to SignAdder
@@ -63,12 +77,13 @@
 	H: .asciiz "\nHex"
 	B: .asciiz "\nBinary"
 
+#main
 .text
-	add $t0, $zero, $a1
-	lw $t1, ($t0) #loading the starting memory location of the first argument into $t1
-	lw $t2, 4($t0) #loading the starting memory location of the 2nd argument into $t2
-	li $v0, 4
-	li $v0, 4     # Output the first message
+	add $t0, $zero, $a1 # Counting register count how many time the main has runned
+	lw $t1, ($t0)       #loading the starting memory location of the first argument into $t1
+	lw $t2, 4($t0)      #loading the starting memory location of the 2nd argument into $t2
+	li $v0, 4	
+	li $v0, 4           # Output the first message
 	la $a0, message1
 	syscall
 	li $v0, 4
@@ -76,7 +91,7 @@
 	syscall
 	
 	li $v0, 4
-	la $a0, ($t1) # Save first input into
+	la $a0, ($t1)       # Save first input argument
 	syscall
 	
 	li $v0, 11
@@ -84,7 +99,7 @@
 	syscall
 	
 	li $v0, 4
-	la $a0, ($t2)
+	la $a0, ($t2)       # Save second input argument
 	syscall
 	
 	li $v0, 4
@@ -95,18 +110,19 @@
 	la $a0, newLine
 	syscall
 	
-	li $v0, 4     # Output the second message
+	li $v0, 4           # Output the second message
 	la $a0, message2
 	syscall
 	
-	addi $t6, $zero, 0
-	BitChecker:
-		lb $t5, 1($t1)
+	addi $t6, $zero, 0  # Counting register count how many time the main has runned
+	
+	BitChecker:            #Check if the input argument is in binary or hexadecimal (hex)
+		lb $t5, 1($t1) #Check the first input argument
 		addi $t7, $zero, 0
 		beq $t5, 120, bitConverterHexA
 		beq $t5, 98, binaryA
 		
-		jp1:
+		jp1:	    #Check the second input argument
 		
 		lb $t5, 1($t2)
 		beq $t5, 120, bitConverterHexB
@@ -114,7 +130,7 @@
 ##################################################################################
 	jp5:
 	   
-	   add $s0, $s1, $s2
+	   add $s0, $s1, $s2  # Add the value in register $s1 and $s2 into the sum register $s0
 
 	   li $v0, 4
 	   la $a0, newLine
@@ -124,7 +140,7 @@
 	   bltz $s0, negSign
 	   j jpB
 	   
-	   negSign:
+	   negSign:          # Output a negative sign before the magnitude if the sum is negative
 	   li $v0, 11
 	   la $a0, 45
 	   syscall
@@ -132,7 +148,7 @@
 	   not $t6, $t6
 	   addi $t6, $t6, 1
 	   
-	   jpB:
+	   jpB:		      # Divide the sum by 4 and save the remainders
 	   div $t6, $t6, 4
 	   mfhi $t3
 
@@ -148,13 +164,13 @@
 	   div $t6, $t6, 4
 	   mfhi $t9
 	   
-	   addi $t3, $t3, 48
+	   addi $t3, $t3, 48 # Add the Ascii values into the remainders
 	   addi $t4, $t4, 48
 	   addi $t7, $t7, 48
 	   addi $t8, $t8, 48
 	   addi $t9, $t9, 48
 	   
-	   beq, $t9, 48, output2
+	   beq, $t9, 48, output2  # Output the remainders to form the sum in base 4
 	   
 	   li $v0, 11
 	   la $a0, ($t9)
@@ -200,12 +216,12 @@
 	   j exit
 
 ##################################################################################
-	bitConverterHexA:	
+	bitConverterHexA:          # Convert the first input argument hex number into 32-bit sign extend value and save it into register $s1
 		addi $t6, $zero, 0
 		addi $t7, $zero, 1
 		li $s1, 0
 		lb $t5, 3($t1)
-		jp2:	
+		jp2:	           # Convert hex value to decimal value
 		beq $t5, 48, C0
 		beq $t5, 49, C0
 		beq $t5, 50, C0
@@ -233,7 +249,7 @@
 		   mul $t5, $t7, $t5
 		   j out1
 		 
-	  out1:	
+	  out1:			      # Convert the decimal value to 32-bit sign extend value by shifting the value left and right by 24-bit
 	 	add $s1, $s1, $t5
 	        addi $t6, $t6, 1
 		la $t7, 16
@@ -247,12 +263,13 @@
 	EndCheckerA:
 	j jp1		
 	
-	bitConverterHexB:	
+	bitConverterHexB:	      # Convert the second input argument hex number into 32-bit sign extend value and save it into register $s2; use the same logic as bitConverterHexA
 		addi $t6, $zero, 0
 		addi $t7, $zero, 1
 		li $s2, 0
 		lb $t5, 3($t2)
-		jp3:	
+		
+		jp3:	             # Convert hex value to decimal value
 		beq $t5, 48, C0B
 		beq $t5, 49, C0B
 		beq $t5, 50, C0B
@@ -281,7 +298,7 @@
 		   j out2
 		   
 		   
-	  out2:	
+	  out2:			    # Convert the decimal value to 32-bit sign extend value by shifting the value left and right by 24-bit
 	 	add $s2, $s2, $t5
 	        addi $t6, $t6, 1
 		la $t7, 16
@@ -295,12 +312,12 @@
 	EndCheckerB:
 	j jp5												
 ##################################################################################	
-	binaryA:
+	binaryA:                                   #Convert second input argument binary value into 32-bit sign extend value and store it into register $s1
 		addi $t6, $zero, 0
 		addi $t7, $zero, 1
 		li $s1, 0
 		lb $t5, 9($t1)
-		jbA:
+		jbA:                               # Convert hex value to decimal value
 		beq $t5, 48, B1
 		beq $t5, 49, B2
 		
@@ -315,7 +332,7 @@
 		   j outBA
 		 
 	  outBA:	
-	 	 add $s1, $s1, $t5
+	 	add $s1, $s1, $t5
 	        addi $t6, $t6, 1
 		mul $t7, $t7, 2
 		
@@ -333,8 +350,8 @@
 		beq $t6, 6, jbA
 		lb $t5, 2($t1)
 		beq $t6, 7, jbA
-		
-		sll $s1, $s1, 24
+						
+		sll $s1, $s1, 24    		   # Convert the decimal value to 32-bit sign extend value by shifting the value left and right by 24-bit
 		sra $s1, $s1, 24
 		
 	        j endBA
@@ -342,7 +359,7 @@
 	endBA:
 		j jp1
 		
-	binaryB:
+	binaryB:				  # Convert first input argument binary value into 32-bit sign extend value and store it into register $s2; use the same logic as binaryA
 		li $t6, 0
 		addi $t7, $zero, 1
 		li $s2, 0
@@ -381,7 +398,7 @@
 		lb $t5, 2($t2)
 		beq $t6, 7, jbB
 		
-		sll $s2, $s2, 24
+		sll $s2, $s2, 24               # Convert the decimal value to 32-bit sign extend value by shifting the value left and right by 24-bit
 		sra $s2, $s2, 24
 		
 	        j endBB
@@ -389,6 +406,6 @@
 	endBB:
 		j jp5
 ##################################################################################
-	exit:
+	exit:                                      # End the program after output the sum in base 4
 		li $v0 10
 		syscall
