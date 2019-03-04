@@ -71,7 +71,6 @@
 	li $v0, 4     # Output the first message
 	la $a0, message1
 	syscall
-	
 	li $v0, 4
 	la $a0, newLine
 	syscall
@@ -92,7 +91,11 @@
 	la $a0, newLine
 	syscall
 	
-	li $v0, 4     # Output the first message
+	li $v0, 4
+	la $a0, newLine
+	syscall
+	
+	li $v0, 4     # Output the second message
 	la $a0, message2
 	syscall
 	
@@ -108,11 +111,95 @@
 		lb $t5, 1($t2)
 		beq $t5, 120, bitConverterHexB
 		beq $t5, 98, binaryB
-		jp5:
-		add $s0 $s1 $s2
-		j exit
+##################################################################################
+	jp5:
+	   
+	   add $s0, $s1, $s2
 
-##################################################################################		
+	   li $v0, 4
+	   la $a0, newLine
+	   syscall
+	   
+	   move $t6, $s0
+	   bltz $s0, negSign
+	   j jpB
+	   
+	   negSign:
+	   li $v0, 11
+	   la $a0, 45
+	   syscall
+	   
+	   not $t6, $t6
+	   addi $t6, $t6, 1
+	   
+	   jpB:
+	   div $t6, $t6, 4
+	   mfhi $t3
+
+	   div $t6, $t6, 4
+	   mfhi $t4
+	   	
+	   div $t6, $t6, 4
+	   mfhi $t7
+	   
+	   div $t6, $t6, 4
+	   mfhi $t8
+
+	   div $t6, $t6, 4
+	   mfhi $t9
+	   
+	   addi $t3, $t3, 48
+	   addi $t4, $t4, 48
+	   addi $t7, $t7, 48
+	   addi $t8, $t8, 48
+	   addi $t9, $t9, 48
+	   
+	   beq, $t9, 48, output2
+	   
+	   li $v0, 11
+	   la $a0, ($t9)
+	   syscall
+	   
+	   output2:
+	   bne $t9, $t8, outA
+	   beq, $t8, 48, output3
+	   outA:
+	   li $v0, 11
+	   la $a0, ($t8)
+	   syscall
+	   
+	   output3:
+	   bne $t9, $t7, outB
+	   beq, $t7, 48, output0
+	   outB:
+	   li $v0, 11
+	   la $a0, ($t7)
+	   syscall
+	   
+	   output0:
+	   bne $t9, $t4, outC
+	   beq, $t4, 48, output1
+	   outC:
+	   li $v0, 11
+	   la $a0, ($t4)
+	   syscall
+	   
+	   output1:
+	   bne $t9, $t3, outD
+	   beq, $t3, 48, end
+	   outD:
+	   li $v0, 11
+	   la $a0, ($t3)
+	   syscall
+	   	   
+	   end:
+	   li $v0, 4
+	   la $a0, newLine
+	   syscall
+	   
+	   j exit
+
+##################################################################################
 	bitConverterHexA:	
 		addi $t6, $zero, 0
 		addi $t7, $zero, 1
@@ -155,10 +242,6 @@
 		
 		sll $s1, $s1, 24
 		sra $s1, $s1, 24
-		
-		li $v0, 1
-		la $a0, ($s1)
-		syscall
 	        j EndCheckerA
 	        
 	EndCheckerA:
@@ -196,7 +279,8 @@
 		   sub $t5, $t5 55
 		   mul $t5, $t7, $t5
 		   j out2
-		 
+		   
+		   
 	  out2:	
 	 	add $s2, $s2, $t5
 	        addi $t6, $t6, 1
@@ -206,10 +290,6 @@
 		
 		sll $s2, $s2, 24
 		sra $s2, $s2, 24
-	
-		li $v0, 1
-		la $a0, ($s2)
-		syscall
 	        j EndCheckerB
 	        
 	EndCheckerB:
@@ -257,9 +337,6 @@
 		sll $s1, $s1, 24
 		sra $s1, $s1, 24
 		
-		li $v0, 1
-		la $a0, ($s1)
-		syscall
 	        j endBA
 	
 	endBA:
@@ -307,9 +384,6 @@
 		sll $s2, $s2, 24
 		sra $s2, $s2, 24
 		
-		li $v0, 1
-		la $a0, ($s2)
-		syscall
 	        j endBB
 	
 	endBB:
