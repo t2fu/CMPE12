@@ -145,8 +145,8 @@ cipher:
     lw $a0, ($sp)
     addi $sp, $sp, 4
     
-    move $s5, $a1
-    move $a1, $v0
+    move $t2, $a1
+    move $a1, $v0 # checksum result stored into $a1
     
     lb $t8, ($a0)
     move $t5, $a2 # index
@@ -181,7 +181,7 @@ cipher:
         b exit4
     	
     	exit4:
-        move $a1, $s5
+        move $a1, $t2
         la $v0, result
         jr $ra
 #--------------------------------------------------------------------
@@ -244,37 +244,47 @@ encrypt:
         b noAction
         
        upper:
-       	beq $a0, 0x65, outofb1
-	beq $a0, 0x66, outofb2
-	addi $a0, $a0, -2
+	li $t0, 90 # max
+	move $t7, $a0
+	sub $a0, $t0, $a0
+	sub $a0, $a1, $a0
+	beq $a0, 1, no_remain
+	beqz $a0, no_remain
+	bnez $a0, remain
+	b noAction
+	
+	remain:
+	li $t0, 64 #min
+        add $a0, $t0, $a0
 	move $v0, $a0
 	b noAction
 	
-	outofb1:
-	li $a0, 0x59
+	no_remain:
+	move $a0, $t7
+	sub $a0, $a0, $a1
 	move $v0, $a0
 	b noAction
-	
-	outofb2:
-	li $a0, 0x5a
-	move $v0, $a0
-	b noAction
-	
+
 	lower:
-	beq $a0, 0x61, outofb3
-	beq $a0, 0x62, outofb4
-        addi $a0, $a0, -2
-	move $v0, $a0
+	li $t0, 122 # max
+	move $t7, $a0
+	sub $a0, $t0, $a0
+	sub $a0, $a1, $a0
+	beq $a0, 1, no_remainl
+	beqz $a0, no_remainl
+	bnez $a0, remainl
 	b noAction
 	
 	
-	outofb3:
-	li $a0, 0x79
+	remainl:
+	li $t0, 96 #min
+        add $a0, $t0, $a0
 	move $v0, $a0
 	b noAction
 		
-	outofb4:
-	li $a0, 0x7a
+	no_remainl:
+	move $a0, $t7
+	sub $a0, $a0, $a1
 	move $v0, $a0
 	b noAction	
 	
@@ -307,36 +317,52 @@ decrypt:
         b noActiond
        
        upperd:
-       	beq $a0, 0x5a, outofb1d
-	beq $a0, 0x59, outofb2d
-	addi $a0, $a0, 2
+	li $t0, 65 # min
+	sub $a0, $a0, $t0
+	sub $a0, $a1, $a0
+	beq $a0, -1, no_remaind
+	beq $a0, -2, no_remaind
+	beq $a0, -3, no_remaind
+	beq $a0, -4, no_remaind
+	beq $a0, -5, no_remaind
+	beqz $a0, no_remaind
+	bnez $a0, remaind
+	b noActiond
+	
+	remaind:
+	li $t0, 91 #max
+        sub $a0, $t0, $a0
 	move $v0, $a0
 	b noActiond
 	
-	outofb1d:
-	li $a0, 0x42
-	move $v0, $a0
-	b noActiond
-	
-	outofb2d:
-	li $a0, 0x41
+	no_remaind:
+	li $t0, 65 #min
+	sub $a0, $t0, $a0
 	move $v0, $a0
 	b noActiond
 	
 	lowerd:
-	beq $a0, 0x7a, outofb3d
-	beq $a0, 0x79, outofb4d
-        addi $a0, $a0, 2
-	move $v0, $a0
+	li $t0, 97 # min
+	sub $a0, $a0, $t0
+	sub $a0, $a1, $a0
+	beq $a0, -1, no_remaindl
+	beq $a0, -2, no_remaindl
+	beq $a0, -3, no_remaindl
+	beq $a0, -4, no_remaindl
+	beq $a0, -5, no_remaindl
+	beqz $a0, no_remaindl
+	bnez $a0, remaindl
 	b noActiond
 	
-	outofb3d:
-	li $a0, 0x62
+	remaindl:
+	li $t0, 123 #max
+        sub $a0, $t0, $a0
 	move $v0, $a0
 	b noActiond
 		
-	outofb4d:
-	li $a0, 0x61
+	no_remaindl:
+	li $t0, 97 #min
+	sub $a0, $t0, $a0
 	move $v0, $a0
 	b noActiond	
 	
@@ -420,6 +446,7 @@ print_strings:
        li $v0, 4
        la $a0, ($t1)
        syscall
+       
       la $a0, newLine
       li $v0, 4
       syscall
