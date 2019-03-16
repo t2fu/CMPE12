@@ -56,7 +56,13 @@ give_prompt:
     li $v0, 4
     syscall
     la $a0, error
+    li $v0, 4
+    syscall   
+    la $a0, newLine
+    li $v0, 4
+    syscall
   g_prompt0:
+    la $a0, prompt0
     li $v0, 4
     syscall
     
