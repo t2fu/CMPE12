@@ -23,7 +23,7 @@ newLine: .asciiz "\n"
 input: .space 101
 key: .space 101
 edcrypt: .space 101
-result: .align 2
+result: .space 101
 encrypted: .asciiz "<Encrypted> "
 decrypted: .asciiz "<Decrypted> "
 .text
@@ -129,7 +129,7 @@ give_prompt:
 #
 # return: $v0 - address of resulting encrypted/decrypted string
 #--------------------------------------------------------------------
- 
+cipher:
     subi $sp, $sp, 4
     sw $a0, ($sp)
     move $a0, $a1
@@ -143,36 +143,41 @@ give_prompt:
     move $a1, $v0
     
     lb $t8, ($a0)
-    beq $t8, 45, enc
-    beq $t8, 44, dec
-    
     move $t5, $a2 # index
+    la $t9, result
+    beq $t8, 0x45, enc
+    beq $t8, 0x44, dec
+    
     	enc:
     	
     	lb $a0, ($t5)
     	b encrypt
-    	sb $t5, ($v0)
     	
     	exit2:
+   	sb $v0, ($t9)
         addi $t5, $t5, 1
+        addi $t9, $t9, 1
+        lb $t1, ($t5)
         bne $t1, 0x0a, enc
         b exit4
         
     	dec:
     	
     	lb $a0, ($t5)
-    	b decrypt
-    	sb $t5, ($v0)    	
+    	b decrypt   	
     	
     	exit3:
+    	sb $v0, ($t9) 
     	 addi $t5, $t5, 1
+    	 addi $t9, $t9, 1
+    	 lb $t1, ($t5)
         bne $t1, 0x0a, dec
         b exit4
     	
-    	
     	exit4:
-    move $a1, $s5
-    jr $ra
+        move $a1, $s5
+        la $v0, result
+        jr $ra
 #--------------------------------------------------------------------
 # compute_checksum
 #
@@ -202,11 +207,11 @@ compute_checksum:
   div $t0, $t1
   mfhi $t6
   
-  move $v0, $t6
-  
+  la $v0, ($t6)
+ 
   #la $a0, ($t6)
   #li $v0, 1
-  #syscall
+  # syscall
   b ed
 #--------------------------------------------------------------------
 # encrypt
@@ -223,10 +228,15 @@ encrypt:
 	
 	b check_ascii
 	
-	beq $v0, -1, noAction
+	checkee:
+	beq $v0, -1, symbole
         beq $v0, 0, upper
         beq $v0, 1, lower
-       
+        
+       symbole:
+        move  $v0, $a0
+        b noAction
+        
        upper:
        	beq $a0, 0x65, outofb1
 	beq $a0, 0x66, outofb2
@@ -280,9 +290,15 @@ decrypt:
 	
 	b check_ascii
 	
-	beq $v0, -1, noActiond
+	checked:
+	
+	beq $v0, -1, symbold
         beq $v0, 0, upperd
         beq $v0, 1, lowerd
+       
+       symbold:
+        move $v0, $a0
+        b noActiond
        
        upperd:
        	beq $a0, 0x5a, outofb1d
@@ -349,12 +365,19 @@ check_ascii:
 	  
 	 uppercase:
 	  li $v0, 0
+       beq $t8, 0x45, checkee
+       beq $t8, 0x44, checked
 	 
 	 lowercase:
 	  li $v0, 1
+       beq $t8, 0x45, checkee
+       beq $t8, 0x44, checked
 	  
 	 notletter:
 	  li $v0, -1
+	  
+       beq $t8, 0x45, checkee
+       beq $t8, 0x44, checked
 #--------------------------------------------------------------------
 # print_strings
 #
@@ -371,8 +394,8 @@ check_ascii:
 print_strings:
     lb $t8, ($a2)
     move $t9, $a0
-    beq $t8, 45, encypt
-    beq $t8, 44, decypt
+    beq $t8, 0x45, encypt
+    beq $t8, 0x44, decypt
     
     encypt:
        move $t1, $a1 #e
@@ -388,36 +411,20 @@ print_strings:
       li $v0, 4
       syscall
       
-      
-      loopp1:
-       lb $a0, ($t1)
        li $v0, 4
+       la $a0, ($t1)
        syscall
-       b exitp1
-       
-       exitp1:
-        addi $t1, $t1, 1
-        lb $t3, ($t1)
-        bne $t3, 0x0a, loopp1
-      
       la $a0, newLine
       li $v0, 4
       syscall
      
      output2:
-      la $a0, decrypted
       li $v0, 4
+      la $a0, decrypted
       syscall
-       
-      loopp2:
-       lb $a0, ($t2)
+
        li $v0, 4
+       la $a0, ($t2)
        syscall
-       b exitp2
-       
-       exitp2:
-        addi $t2, $t2, 1
-        lb $t3, ($t2)
-        bne $t3, 0x0a, loopp1
-             
+                     
    jr $ra
