@@ -155,6 +155,7 @@
 	   div $t6, $t6, 4
 	   mfhi $t4
 	   	
+	   # div $t0 4
 	   div $t6, $t6, 4
 	   mfhi $t7
 	   
