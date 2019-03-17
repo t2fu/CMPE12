@@ -28,6 +28,7 @@ edcrypt: .space 101    # Store the user input Encrypted or Decrypted string valu
 result: .space 101     # Store the final resulting Encrypted or Decrypted value
 encrypted: .asciiz "<Encrypted> "
 decrypted: .asciiz "<Decrypted> "
+outcrypted: .asciiz "Here is the encrypted and decrypted string"
 .text
 #--------------------------------------------------------------------
 # give_prompt
@@ -430,7 +431,7 @@ print_strings:
     move $t9, $a0
     beq $t8, 0x45, encypt
     beq $t8, 0x44, decypt
-    
+      
     encypt:
        move $t1, $a1	 # address of the decypted string array
        move $t2, $a0	 # address of the encypted string array
@@ -441,6 +442,18 @@ print_strings:
         b output1
         
     output1:		 # loop through the encypted string array and print out all string character value in the array
+      la $a0, newLine
+      li $v0, 4
+      syscall
+    
+      la $a0, outcrypted
+      li $v0, 4
+      syscall
+     
+      la $a0, newLine
+      li $v0, 4
+      syscall
+      
       la $a0, encrypted
       li $v0, 4
       syscall
