@@ -462,8 +462,8 @@ print_strings:
        la $a0, ($t1)
        syscall
        
+      li $v0, 4 
       la $a0, newLine
-      li $v0, 4
       syscall
      
      output2:		 # loop through the decrypted string array and print out all string character value in the array
